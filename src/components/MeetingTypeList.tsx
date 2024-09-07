@@ -93,12 +93,37 @@ function MeetingTypeList() {
         }}
         className="bg-purple-1"
       />
+      {!callDetails ? (
+        <MeetingModel
+          isOpen={meeting === "isSceduleMeeting"}
+          onClose={() => setmeeting(undefined)}
+          title="Start an instant meeting"
+          className="text-center"
+          buttonText="Start meeting"
+          handleClick={createMeeting}
+        ></MeetingModel>
+      ) : (
+        <MeetingModel
+          isOpen={meeting === "isSceduleMeeting"}
+          onClose={() => setmeeting(undefined)}
+          title="Meeting created"
+          className="text-center"
+          buttonText="Copy meeting link"
+          handleClick={() => {
+            // navigator.clipboard.writeText(meetingLink);
+            // toast({
+            //   title: "Meeting link copied",
+            // });
+          }}
+          image={"/icons/copy.svg"}
+        />
+      )}
       <MeetingModel
         isOpen={meeting === "isInstantMeeting"}
         onClose={() => setmeeting(undefined)}
-        title="Start an instant meeting"
+        title="Start an Instant Meeting"
         className="text-center"
-        buttonText="Start meeting"
+        buttonText="Start Meeting"
         handleClick={createMeeting}
       />
     </section>
