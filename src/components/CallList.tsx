@@ -3,8 +3,9 @@ import { useGetCalls } from "@/hooks/useGetCalls";
 import { CallRecording } from "@stream-io/node-sdk";
 import { Call } from "@stream-io/video-react-sdk";
 import { useRouter } from "next/navigation";
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import Loader from "./Loader";
+import { toast } from "./hooks/use-toast";
 
 const MeetingCard = lazy(() => import("./MeetingCard"));
 
@@ -12,7 +13,7 @@ function CallList({ type }: { type: "upcoming" | "recording" | "ended" }) {
   const { endedCalls, upcomingCalls, callRecordings, isLoading } =
     useGetCalls();
   const router = useRouter();
-  const [recordings, setrecordings] = useState<Call[]>([]);
+  const [recordings, setrecordings] = useState<CallRecording[] | any>([]);
   const getCalls = () => {
     switch (type) {
       case "ended":
@@ -41,6 +42,32 @@ function CallList({ type }: { type: "upcoming" | "recording" | "ended" }) {
     }
   };
 
+  useEffect(() => {
+    const fetchRecordings = async () => {
+      try {
+        const callData = await Promise.all(
+          callRecordings.map((meeting) => meeting.queryRecordings())
+        );
+
+        const recordings = callData
+          .filter((call) => call.recordings.length > 0)
+          .flatMap((call) => call.recordings);
+
+        setrecordings(recordings);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch recordings",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (type === "recording") {
+      fetchRecordings();
+    }
+  }, [type, callRecordings]);
+
   const calls = getCalls();
   const noCallMessage = getNoCallMessage();
 
@@ -64,10 +91,12 @@ function CallList({ type }: { type: "upcoming" | "recording" | "ended" }) {
                     : "/icons/recordings.svg"
                 }
                 title={
-                  (meeting as Call).state?.custom?.description.substring(
+                  (meeting as Call).state?.custom?.description?.substring(
                     0,
                     26
-                  ) || "No description"
+                  ) ||
+                  (meeting as CallRecording).filename?.substring(0, 26) ||
+                  "Personal meeting"
                 }
                 date={
                   (meeting as Call).state?.startsAt?.toLocaleString() ||
