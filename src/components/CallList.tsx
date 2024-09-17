@@ -80,7 +80,7 @@ function CallList({ type }: { type: "upcoming" | "recording" | "ended" }) {
       {calls && calls.length > 0 ? (
         calls.map((meeting: Call | CallRecording) => {
           return (
-            <Suspense fallback={<Loader />}>
+            <Suspense key={(meeting as Call)?.id} fallback={<Loader />}>
               <MeetingCard
                 key={(meeting as Call)?.id}
                 icon={
